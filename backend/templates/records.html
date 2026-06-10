@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}出入记录 - 停车场管理系统{% endblock %}
+
+{% block content %}
+<div class="page-card">
+  <h2>📋 出入记录查询</h2>
+
+  <form class="search-form" method="GET" action="/records">
+    <div class="search-row">
+      <div class="search-field">
+        <label>车牌号</label>
+        <input type="text" name="plate" value="{{ plate }}" placeholder="输入车牌号搜索..." class="input">
+      </div>
+      <div class="search-field">
+        <label>日期</label>
+        <input type="date" name="date" value="{{ date }}" class="input">
+      </div>
+      <div class="search-field" style="align-self:flex-end;">
+        <button type="submit" class="btn btn-primary">🔍 搜索</button>
+        <a href="/records" class="btn btn-secondary">重置</a>
+      </div>
+    </div>
+  </form>
+
+  {% if records %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>车牌号</th>
+        <th>类型</th>
+        <th>位置</th>
+        <th>时长</th>
+        <th>费用</th>
+        <th>置信度</th>
+        <th>时间</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in records %}
+      <tr class="{{ 'row-review' if r.need_review else '' }}">
+        <td>
+          <span class="plate">{{ r.plate_number }}</span>
+          {% if r.need_review %}<span class="review-badge">待审核</span>{% endif %}
+        </td>
+        <td>
+          <span class="event-tag {{ r.event_type }}">
+            {{ "入场" if r.event_type == "enter" else "出场" }}
+          </span>
+        </td>
+        <td>{{ r.location }}</td>
+        <td>
+          {% if r.parking_duration > 0 %}
+            {% set h = r.parking_duration // 3600 %}
+            {% set m = (r.parking_duration % 3600) // 60 %}
+            {{ "%d时%d分"|format(h, m) if h > 0 else "%d分"|format(m) }}
+          {% else %}-{% endif %}
+        </td>
+        <td>{% if r.fee > 0 %}¥{{ "%.2f"|format(r.fee) }}{% else %}-{% endif %}</td>
+        <td>{% if r.confidence > 0 %}{{ "%.0f%%"|format(r.confidence * 100) }}{% else %}-{% endif %}</td>
+        <td style="font-size:13px;color:#999;">{{ r.created_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    {% if page > 1 %}
+    <a href="?plate={{ plate }}&date={{ date }}&page={{ page - 1 }}" class="btn btn-secondary">← 上一页</a>
+    {% endif %}
+    <span class="page-info">第 {{ page }} 页 / 共 {{ total_pages }} 页 ({{ total }} 条)</span>
+    {% if page < total_pages %}
+    <a href="?plate={{ plate }}&date={{ date }}&page={{ page + 1 }}" class="btn btn-secondary">下一页 →</a>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="empty-state">暂无记录</div>
+  {% endif %}
+</div>
+{% endblock %}

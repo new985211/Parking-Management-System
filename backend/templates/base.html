@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}停车场管理系统{% endblock %}</title>
+<link rel="stylesheet" href="/static/css/style.css">
+{% block head %}{% endblock %}
+</head>
+<body>
+<header class="header">
+  <div class="header-inner">
+    <h1>🅿️ 停车场管理系统</h1>
+    <nav class="nav">
+      <a href="/" class="nav-link">监控面板</a>
+      <a href="/records" class="nav-link">出入记录</a>
+      <a href="/vehicles" class="nav-link">车辆管理</a>
+      <a href="/review" class="nav-link">待审核<span id="review-badge" class="badge" style="display:none"></span></a>
+      <span class="nav-right">
+        <span id="login-status"></span>
+      </span>
+    </nav>
+  </div>
+</header>
+
+<main class="main">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <p>Parking LPR System &copy; 2026 &middot; Flask + PaddleOCR + SQLite</p>
+</footer>
+
+<script src="/static/js/dashboard.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

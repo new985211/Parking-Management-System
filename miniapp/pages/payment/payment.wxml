@@ -1,0 +1,44 @@
+<view class="header-card">
+  <view class="page-title">💰 停车缴费</view>
+  <view class="page-subtitle">扫码支付，快速出场</view>
+</view>
+
+<view wx:if="{{paid}}" class="card" style="text-align:center;">
+  <view style="font-size:80rpx;margin:30rpx 0;">✅</view>
+  <view style="font-size:36rpx;font-weight:600;color:#43e97b;">支付成功</view>
+  <view style="color:#999;margin-top:10rpx;">道闸即将开启，请尽快通行</view>
+</view>
+
+<block wx:elif="{{currentParking}}">
+  <view class="card" style="text-align:center;">
+    <view class="plate-box">{{currentParking.plate_number}}</view>
+  </view>
+
+  <view class="stat-grid">
+    <view class="stat-card">
+      <view class="stat-number" style="font-size:40rpx;">{{currentParking.duration_text || '--'}}</view>
+      <view class="stat-label">停车时长</view>
+    </view>
+    <view class="stat-card">
+      <view class="stat-number" style="color:#f093fb;">¥{{currentParking.fee || 0}}</view>
+      <view class="stat-label">应缴费用</view>
+    </view>
+  </view>
+
+  <view wx:if="{{currentParking.fee > 0}}">
+    <button class="btn btn-primary" bindtap="doPayment" loading="{{paying}}" disabled="{{paying}}">
+      💳 微信支付 ¥{{currentParking.fee}}
+    </button>
+  </view>
+  <view wx:else class="card" style="text-align:center;color:#43e97b;">
+    🎉 免费停车，无需缴费
+  </view>
+</block>
+
+<block wx:else>
+  <view class="card empty-state">
+    <view style="font-size:60rpx;margin-bottom:20rpx;">🚗</view>
+    <view>当前没有需要缴费的记录</view>
+    <view style="font-size:24rpx;color:#ccc;margin-top:10rpx;">车辆已出场或暂未入场</view>
+  </view>
+</block>

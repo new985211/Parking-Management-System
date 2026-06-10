@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  ocr:
+    build:
+      context: ./docker/paddleocr
+      dockerfile: Dockerfile
+    container_name: parking-ocr
+    ports:
+      - "5001:5001"
+    restart: always
+    mem_limit: 2g
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: parking-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - OCR_SERVICE_URL=http://ocr:5001/ocr
+      - DB_PATH=/app/data/parking.db
+      - UPLOAD_FOLDER=/app/data/uploads
+      - SECRET_KEY=${SECRET_KEY:-dev-key-change-me}
+      - WECHAT_APP_ID=${WECHAT_APP_ID}
+      - WECHAT_MCH_ID=${WECHAT_MCH_ID}
+      - WECHAT_API_KEY=${WECHAT_API_KEY}
+      - WECHAT_NOTIFY_URL=${WECHAT_NOTIFY_URL}
+    volumes:
+      - ./data:/app/data
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      ocr:
+        condition: service_healthy
+    restart: always
+
+  nginx:
+    image: nginx:alpine
+    container_name: parking-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/parking.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./backend/static:/usr/share/nginx/html/static:ro
+      - ./backend/uploads:/usr/share/nginx/html/uploads:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  data:

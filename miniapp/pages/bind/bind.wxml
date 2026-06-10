@@ -1,0 +1,34 @@
+<view class="header-card">
+  <view class="page-title">🔗 绑定车牌</view>
+  <view class="page-subtitle">绑定后可查看记录和在线缴费</view>
+</view>
+
+<view wx:if="{{vehicle}}" class="card" style="text-align:center;">
+  <view style="font-size:26rpx;color:#43e97b;margin-bottom:10rpx;">✅ 已绑定</view>
+  <view class="plate-box">{{vehicle.plate_number}}</view>
+  <view style="margin-top:20rpx;color:#999;font-size:26rpx;">
+    车主: {{vehicle.owner_name || '--'}} &nbsp; 电话: {{vehicle.phone || '--'}}
+  </view>
+  <button class="btn btn-secondary" bindtap="doUnbind" style="margin-top:30rpx;">解绑车牌</button>
+</view>
+
+<block wx:else>
+  <view class="card">
+    <view class="input-group" style="margin:0;">
+      <view class="input-label">车牌号 *</view>
+      <input class="input" placeholder="例如：粤B12345" value="{{plate}}" bindinput="onPlateInput" maxlength="10"/>
+    </view>
+    <view class="input-group" style="margin:20rpx 0 0 0;">
+      <view class="input-label">车主姓名</view>
+      <input class="input" placeholder="张三" value="{{ownerName}}" bindinput="onNameInput"/>
+    </view>
+    <view class="input-group" style="margin:20rpx 0 0 0;">
+      <view class="input-label">联系电话</view>
+      <input class="input" type="number" placeholder="13800138000" value="{{phone}}" bindinput="onPhoneInput" maxlength="11"/>
+    </view>
+  </view>
+
+  <button class="btn btn-primary" bindtap="doBind" loading="{{binding}}" disabled="{{binding}}">
+    确认绑定
+  </button>
+</block>

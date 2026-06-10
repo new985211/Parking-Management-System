@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}管理员登录 - 停车场管理系统{% endblock %}
+
+{% block content %}
+<div style="max-width:400px;margin:80px auto;">
+  <div class="page-card" style="text-align:center;">
+    <h2 style="margin-bottom:20px;">🔐 管理员登录</h2>
+    <form id="login-form" onsubmit="doLogin(event)">
+      <div style="margin-bottom:15px;">
+        <input type="text" id="username" class="input" placeholder="用户名" required style="text-align:center;">
+      </div>
+      <div style="margin-bottom:15px;">
+        <input type="password" id="password" class="input" placeholder="密码" required style="text-align:center;">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">登录</button>
+      <p id="login-error" style="color:#e74c3c;margin-top:10px;display:none;"></p>
+      <p style="color:#999;margin-top:15px;font-size:12px;">默认账号: admin / admin123</p>
+    </form>
+  </div>
+</div>
+
+<script>
+async function doLogin(e) {
+  e.preventDefault();
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  try {
+    const r = await fetch('/api/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username, password})
+    });
+    const j = await r.json();
+    if (j.success) {
+      window.location.href = '/';
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+      document.getElementById('login-error').textContent = j.error;
+    }
+  } catch(e) {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('login-error').textContent = '登录失败: ' + e.message;
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,21 @@
+[Unit]
+Description=Parking LPR Gate Worker
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/parking-lpr/capture
+Environment="BACKEND_URL=http://localhost:5000"
+Environment="GATE_TYPE=network_relay"
+Environment="GATE_RELAY_HOST=192.168.1.200"
+Environment="GATE_DIRECTION=entry"
+ExecStart=/usr/bin/python3 /opt/parking-lpr/capture/gate_worker.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

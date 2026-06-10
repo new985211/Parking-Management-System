@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}车辆管理 - 停车场管理系统{% endblock %}
+
+{% block content %}
+<div class="page-card">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <h2>🚗 车辆管理</h2>
+    <button class="btn btn-primary" onclick="showAddForm()">+ 添加车辆</button>
+  </div>
+
+  <div id="add-form" class="form-card" style="display:none;margin-top:15px;">
+    <h3>添加/编辑车辆</h3>
+    <div class="form-grid">
+      <div><label>车牌号 *</label><input id="v-plate" class="input" placeholder="粤B12345"></div>
+      <div><label>车主姓名</label><input id="v-owner" class="input" placeholder="张三"></div>
+      <div><label>联系电话</label><input id="v-phone" class="input" placeholder="13800138000"></div>
+      <div>
+        <label>车辆类型</label>
+        <select id="v-type" class="input">
+          <option value="normal">普通车辆</option>
+          <option value="vip">VIP</option>
+          <option value="monthly">月租车</option>
+        </select>
+      </div>
+      <div><label>月租费</label><input id="v-fee" class="input" type="number" value="0" step="0.01"></div>
+      <div><label>微信OpenID</label><input id="v-openid" class="input" placeholder="oXXXX"></div>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-primary" onclick="saveVehicle()">保存</button>
+      <button class="btn btn-secondary" onclick="hideAddForm()">取消</button>
+    </div>
+  </div>
+
+  {% if vehicles %}
+  <table class="data-table" style="margin-top:15px;">
+    <thead>
+      <tr>
+        <th>车牌号</th>
+        <th>车主</th>
+        <th>电话</th>
+        <th>类型</th>
+        <th>月租费</th>
+        <th>到期日</th>
+        <th>注册时间</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in vehicles %}
+      <tr>
+        <td><span class="plate">{{ v.plate_number }}</span></td>
+        <td>{{ v.owner_name or '-' }}</td>
+        <td>{{ v.phone or '-' }}</td>
+        <td>
+          {% if v.vehicle_type == 'monthly' %}
+          <span class="event-tag enter">月租</span>
+          {% elif v.vehicle_type == 'vip' %}
+          <span class="event-tag">VIP</span>
+          {% elif v.vehicle_type == 'blacklist' %}
+          <span class="event-tag exit">黑名单</span>
+          {% else %}
+          <span>普通</span>
+          {% endif %}
+        </td>
+        <td>{% if v.monthly_fee > 0 %}¥{{ "%.2f"|format(v.monthly_fee) }}{% else %}-{% endif %}</td>
+        <td>{{ v.monthly_expire or '-' }}</td>
+        <td style="font-size:13px;">{{ v.created_at[:10] if v.created_at else '-' }}</td>
+        <td>
+          <button class="btn-small" onclick="editVehicle('{{ v.plate_number }}')">编辑</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">暂无注册车辆</div>
+  {% endif %}
+</div>
+
+<script>
+function showAddForm(){document.getElementById('add-form').style.display='block';}
+function hideAddForm(){document.getElementById('add-form').style.display='none';}
+async function saveVehicle(){
+  const data = {
+    plate_number: document.getElementById('v-plate').value.trim().toUpperCase(),
+    owner_name: document.getElementById('v-owner').value.trim(),
+    phone: document.getElementById('v-phone').value.trim(),
+    vehicle_type: document.getElementById('v-type').value,
+    monthly_fee: parseFloat(document.getElementById('v-fee').value)||0,
+  };
+  if(!data.plate_number) return alert('请输入车牌号');
+  try {
+    const r = await fetch('/api/vehicles', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const j = await r.json();
+    if(j.success) location.reload();
+    else alert(j.error);
+  } catch(e) { alert('保存失败: '+e.message); }
+}
+function editVehicle(plate){
+  document.getElementById('v-plate').value = plate;
+  showAddForm();
+}
+</script>
+{% endblock %}

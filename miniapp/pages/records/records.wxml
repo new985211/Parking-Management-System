@@ -1,0 +1,29 @@
+<view class="header-card">
+  <view class="page-title">📋 停车记录</view>
+  <view class="page-subtitle">查看历史出入记录</view>
+</view>
+
+<view wx:if="{{records.length === 0 && !loading}}" class="empty-state" style="margin-top:80rpx;">
+  暂无停车记录
+</view>
+
+<view wx:for="{{records}}" wx:key="id" class="card" style="margin-bottom:10rpx;">
+  <view class="record-item">
+    <view>
+      <view class="plate-text" style="font-size:36rpx;">{{item.plate_number}}</view>
+      <view style="margin-top:6rpx;">
+        <text class="tag tag-{{item.event_type}}">{{item.event_type === 'enter' ? '入场' : '出场'}}</text>
+        <text wx:if="{{item.fee > 0}}" class="fee-text" style="margin-left:12rpx;">¥{{item.fee}}</text>
+      </view>
+    </view>
+    <view style="text-align:right;">
+      <view style="font-size:24rpx;color:#999;">{{item.created_at}}</view>
+      <view wx:if="{{item.parking_duration > 0}}" style="font-size:24rpx;color:#999;">
+        {{item.parking_duration >= 3600 ? (item.parking_duration / 3600).toFixed(1) + '小时' : (item.parking_duration / 60).toFixed(0) + '分钟'}}
+      </view>
+    </view>
+  </view>
+</view>
+
+<view wx:if="{{loading}}" class="empty-state">加载中...</view>
+<view wx:elif="{{!hasMore && records.length > 0}}" class="empty-state" style="padding:40rpx;">— 没有更多了 —</view>

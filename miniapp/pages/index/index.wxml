@@ -1,0 +1,47 @@
+<view class="header-card">
+  <view class="page-title">🅿️ 我的车辆</view>
+  <view class="page-subtitle">停车场智能管理系统</view>
+</view>
+
+<view wx:if="{{loading}}" class="empty-state">加载中...</view>
+
+<block wx:elif="{{vehicle}}">
+  <!-- License Plate -->
+  <view class="card" style="text-align:center;">
+    <view style="font-size:26rpx;color:#999;margin-bottom:10rpx;">绑定车牌</view>
+    <view class="plate-box">{{vehicle.plate_number}}</view>
+    <view style="margin-top:10rpx;">
+      <text class="tag tag-{{vehicle.vehicle_type === 'monthly' ? 'enter' : ''}}">
+        {{vehicle.vehicle_type === 'monthly' ? '月租车' : vehicle.vehicle_type === 'vip' ? 'VIP' : '普通车辆'}}
+      </text>
+    </view>
+  </view>
+
+  <!-- Current Parking Status -->
+  <view wx:if="{{currentParking}}" class="card">
+    <view style="font-size:28rpx;color:#999;margin-bottom:16rpx;">当前停车状态</view>
+    <view class="stat-grid" style="margin:0;">
+      <view class="stat-card">
+        <view class="stat-number" style="color:#43e97b;">🅿️</view>
+        <view class="stat-label">在场</view>
+      </view>
+      <view class="stat-card">
+        <view class="stat-number" style="color:#f093fb;">¥{{currentParking.fee || 0}}</view>
+        <view class="stat-label">当前费用</view>
+      </view>
+    </view>
+    <view style="text-align:center;margin-top:16rpx;color:#999;font-size:24rpx;">
+      已停车 {{currentParking.duration_text || '--'}}
+    </view>
+  </view>
+
+  <view wx:else class="card empty-state">当前未在场内停车</view>
+</block>
+
+<block wx:else>
+  <view class="card empty-state">
+    <view style="font-size:60rpx;margin-bottom:20rpx;">🚗</view>
+    <view>暂未绑定车牌</view>
+    <navigator url="/pages/bind/bind" class="btn btn-primary" style="margin-top:30rpx;">去绑定车牌</navigator>
+  </view>
+</block>

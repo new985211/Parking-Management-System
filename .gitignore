@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.pytest_cache/
+venv/
+env/
+.venv/
+
+# Environment
+.env
+
+# Uploads (keep folder, ignore content)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-volumes/
+
+# Claude Code internal
+.claude/
+
+# Logs
+*.log
