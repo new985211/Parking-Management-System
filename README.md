@@ -2,7 +2,6 @@
 
 基于 **Flask + PaddleOCR + SQLite** 的轻量级车牌识别停车场管理系统。支持车牌自动识别、出入场记录、阶梯计费、道闸联动、微信小程序车主端和在线支付。
 
-
 ---
 
 ## 📋 目录
@@ -610,4 +609,6 @@ MIT License
 
 - [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR) — 百度开源OCR引擎
 - [Flask](https://flask.palletsprojects.com/) — Python Web微框架
-- 参考文章：Flask+PaddleOCR搭建停车场管理系统
+- 如果觉得好用，欢迎点个 Star 或者打赏支持：
+
+  ![sponsor](assets/zxq.jpg)

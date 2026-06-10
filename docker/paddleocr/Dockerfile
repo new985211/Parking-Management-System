@@ -2,8 +2,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Minimal system deps for PaddlePaddle CPU + opencv-python-headless
+# System deps: build tools for C extensions + PaddlePaddle runtime libs
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
     libgomp1 \
     libglib2.0-0 \
     curl \
