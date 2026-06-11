@@ -89,3 +89,27 @@ class TestDatabase:
 
         # Non-existent openid
         assert database.get_vehicle_by_openid("oNonexistent") is None
+
+    def test_upsert_with_monthly_expire(self):
+        """Verify Bug #3 fix: monthly_expire is saved correctly."""
+        database.upsert_vehicle(
+            "粤B99999", "赵六", "13900000000",
+            vehicle_type="monthly", monthly_fee=300.0,
+            monthly_expire="2026-12-31"
+        )
+        v = database.get_vehicle("粤B99999")
+        assert v["monthly_expire"] == "2026-12-31"
+        assert v["monthly_fee"] == 300.0
+        assert v["vehicle_type"] == "monthly"
+
+    def test_upsert_update_preserves_monthly_expire(self):
+        """Updating a vehicle should keep monthly_expire if provided."""
+        database.upsert_vehicle("粤B77777", monthly_expire="2026-06-30")
+        v = database.get_vehicle("粤B77777")
+        assert v["monthly_expire"] == "2026-06-30"
+
+        # Update with new expiry
+        database.upsert_vehicle("粤B77777", owner_name="钱七", monthly_expire="2027-01-01")
+        v = database.get_vehicle("粤B77777")
+        assert v["owner_name"] == "钱七"
+        assert v["monthly_expire"] == "2027-01-01"

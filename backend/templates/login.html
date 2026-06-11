@@ -1,46 +1,297 @@
 {% extends "base.html" %}
-{% block title %}管理员登录 - 停车场管理系统{% endblock %}
+{% block title %}管理员登录 - 停车管理{% endblock %}
+
+{% block head %}
+<style>
+  /* Login page overrides — full-screen gradient background */
+  body.login-page {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #4facfe 100%);
+    min-height: 100vh;
+  }
+  body.login-page .main { display: flex; align-items: center; justify-content: center; max-width: 100%; padding: 1rem; }
+
+  .login-card {
+    background: var(--surface, #fff);
+    border-radius: 1.5rem;
+    box-shadow: 0 25px 60px rgba(0,0,0,.2), 0 8px 20px rgba(0,0,0,.1);
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 420px;
+    animation: loginSlideIn .5s ease;
+  }
+  @keyframes loginSlideIn {
+    from { opacity: 0; transform: translateY(30px) scale(.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .login-brand {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .login-brand .icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 0.75rem;
+    background: var(--brand-gradient, linear-gradient(135deg, #667eea, #764ba2));
+    border-radius: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    box-shadow: 0 8px 24px rgba(102,126,234,.35);
+  }
+  .login-brand h1 {
+    font-size: 1.375rem;
+    font-weight: 800;
+    color: var(--text, #1e293b);
+    margin-bottom: 0.25rem;
+  }
+  .login-brand p {
+    color: var(--text-muted, #64748b);
+    font-size: 0.875rem;
+  }
+
+  .login-field {
+    margin-bottom: 1.25rem;
+  }
+  .login-field label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--text-muted, #64748b);
+    margin-bottom: 0.375rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .login-field .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .login-field .input-icon {
+    position: absolute;
+    left: 0.875rem;
+    font-size: 1.125rem;
+    pointer-events: none;
+    z-index: 1;
+    opacity: .5;
+  }
+  .login-field input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border: 2px solid var(--border, #e2e8f0);
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    font-family: inherit;
+    color: var(--text, #1e293b);
+    background: var(--gray-50, #f8fafc);
+    transition: border-color .2s, box-shadow .2s, background .2s;
+    min-height: 3rem;
+  }
+  .login-field input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102,126,234,.12);
+    background: var(--surface, #fff);
+  }
+  .login-field input[aria-invalid="true"] {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 4px rgba(239,68,68,.1);
+  }
+  .login-error {
+    background: #fef2f2;
+    color: #dc2626;
+    border-radius: 0.625rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: none;
+    border: 1px solid #fecaca;
+    animation: shake .4s ease;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+    75% { transform: translateX(-3px); }
+  }
+  .login-error.show { display: block; }
+
+  .login-btn {
+    width: 100%;
+    padding: 0.875rem;
+    border: none;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+    min-height: 3.25rem;
+    position: relative;
+    box-shadow: 0 4px 16px rgba(102,126,234,.3);
+    letter-spacing: 0.02em;
+  }
+  .login-btn:hover { box-shadow: 0 6px 24px rgba(102,126,234,.4); transform: translateY(-1px); }
+  .login-btn:active { transform: translateY(0); }
+  .login-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .login-btn:disabled { opacity: .7; cursor: not-allowed; pointer-events: none; }
+
+  .login-btn.is-loading { color: transparent; }
+  .login-btn.is-loading::after {
+    content: "";
+    position: absolute;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid #fff;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+  .login-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.75rem;
+    color: var(--text-dim, #94a3b8);
+  }
+  .login-footer .hint {
+    background: var(--gray-50, #f8fafc);
+    display: inline-block;
+    padding: 0.375rem 0.875rem;
+    border-radius: 2rem;
+    border: 1px solid var(--border, #e2e8f0);
+  }
+  .login-footer a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .login-footer a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div style="max-width:400px;margin:80px auto;">
-  <div class="page-card" style="text-align:center;">
-    <h2 style="margin-bottom:20px;">🔐 管理员登录</h2>
-    <form id="login-form" onsubmit="doLogin(event)">
-      <div style="margin-bottom:15px;">
-        <input type="text" id="username" class="input" placeholder="用户名" required style="text-align:center;">
+<div class="login-card" role="main">
+  <div class="login-brand">
+    <div class="icon">🅿️</div>
+    <h1>停车场管理系统</h1>
+    <p>请登录您的管理员账号</p>
+  </div>
+
+  <form id="login-form" onsubmit="return handleLogin(event)" novalidate>
+    <div class="login-error" id="login-error" role="alert"></div>
+
+    <div class="login-field">
+      <label for="username">用户名</label>
+      <div class="input-wrapper">
+        <span class="input-icon" aria-hidden="true">👤</span>
+        <input type="text" id="username" required autocomplete="username"
+               placeholder="admin" autofocus
+               oninput="clearError()">
       </div>
-      <div style="margin-bottom:15px;">
-        <input type="password" id="password" class="input" placeholder="密码" required style="text-align:center;">
+    </div>
+
+    <div class="login-field">
+      <label for="password">密码</label>
+      <div class="input-wrapper">
+        <span class="input-icon" aria-hidden="true">🔒</span>
+        <input type="password" id="password" required autocomplete="current-password"
+               placeholder="········"
+               oninput="clearError()">
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;">登录</button>
-      <p id="login-error" style="color:#e74c3c;margin-top:10px;display:none;"></p>
-      <p style="color:#999;margin-top:15px;font-size:12px;">默认账号: admin / admin123</p>
-    </form>
+    </div>
+
+    <button type="submit" class="login-btn" id="login-btn">
+      <span class="btn-text">登 录</span>
+    </button>
+  </form>
+
+  <div class="login-footer">
+    <span class="hint">默认账号: <strong>admin</strong> / <strong>admin123</strong></span>
+    <br style="margin-top:0.5rem;">
+    <a href="/">← 返回面板</a>
   </div>
 </div>
 
 <script>
-async function doLogin(e) {
+// Login logic — self-contained, no dependency on dashboard.js
+function handleLogin(e) {
   e.preventDefault();
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
-  try {
-    const r = await fetch('/api/login', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({username, password})
-    });
-    const j = await r.json();
-    if (j.success) {
-      window.location.href = '/';
-    } else {
-      document.getElementById('login-error').style.display = 'block';
-      document.getElementById('login-error').textContent = j.error;
-    }
-  } catch(e) {
-    document.getElementById('login-error').style.display = 'block';
-    document.getElementById('login-error').textContent = '登录失败: ' + e.message;
+
+  var btn = document.getElementById('login-btn');
+  var errorEl = document.getElementById('login-error');
+  var username = document.getElementById('username').value.trim();
+  var password = document.getElementById('password').value;
+
+  // Validate
+  if (!username || !password) {
+    showLoginError('请输入用户名和密码');
+    return false;
   }
+
+  // Loading state
+  btn.classList.add('is-loading');
+  btn.disabled = true;
+
+  fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: username, password: password })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.success) {
+      // Success — redirect
+      errorEl.classList.remove('show');
+      document.querySelector('.login-card').style.opacity = '0';
+      document.querySelector('.login-card').style.transform = 'scale(.95)';
+      document.querySelector('.login-card').style.transition = 'all .3s ease';
+      setTimeout(function() { window.location.href = '/'; }, 300);
+    } else {
+      showLoginError(data.error || '用户名或密码错误');
+      btn.classList.remove('is-loading');
+      btn.disabled = false;
+      document.getElementById('password').value = '';
+      document.getElementById('password').focus();
+    }
+  })
+  .catch(function(e) {
+    showLoginError('网络错误，请检查服务器连接');
+    btn.classList.remove('is-loading');
+    btn.disabled = false;
+  });
+
+  return false;
 }
+
+function showLoginError(msg) {
+  var errorEl = document.getElementById('login-error');
+  errorEl.textContent = msg;
+  errorEl.classList.add('show');
+  // Reset shake animation
+  errorEl.style.animation = 'none';
+  errorEl.offsetHeight; // trigger reflow
+  errorEl.style.animation = 'shake .4s ease';
+  document.getElementById('username').setAttribute('aria-invalid', 'true');
+  document.getElementById('password').setAttribute('aria-invalid', 'true');
+}
+
+function clearError() {
+  var errorEl = document.getElementById('login-error');
+  errorEl.classList.remove('show');
+  document.getElementById('username').removeAttribute('aria-invalid');
+  document.getElementById('password').removeAttribute('aria-invalid');
+}
+
+// Keyboard: Enter on password also submits
+document.getElementById('password').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') { handleLogin(e); }
+});
 </script>
 {% endblock %}

@@ -1,59 +1,88 @@
 {% extends "base.html" %}
-{% block title %}监控面板 - 停车场管理系统{% endblock %}
+{% block title %}监控面板 - 停车管理{% endblock %}
 
 {% block content %}
-<div class="stats">
+<div class="stats" aria-label="今日统计">
   <div class="stat-card">
-    <div class="stat-number">{{ today_in }}</div>
+    <div class="stat-icon">🚗</div>
+    <div class="stat-number" id="stat-today-in">{{ today_in }}</div>
     <div class="stat-label">今日入场</div>
   </div>
   <div class="stat-card">
-    <div class="stat-number">{{ today_out }}</div>
+    <div class="stat-icon">🏁</div>
+    <div class="stat-number" id="stat-today-out">{{ today_out }}</div>
     <div class="stat-label">今日出场</div>
   </div>
   <div class="stat-card">
-    <div class="stat-number">{{ current_parked }}</div>
+    <div class="stat-icon">🅿️</div>
+    <div class="stat-number" id="stat-current">{{ current_parked }}</div>
     <div class="stat-label">当前在场</div>
   </div>
   <div class="stat-card">
-    <div class="stat-number">¥{{ "%.2f"|format(today_revenue) }}</div>
+    <div class="stat-icon">💰</div>
+    <div class="stat-number" id="stat-revenue">¥{{ "%.2f"|format(today_revenue) }}</div>
     <div class="stat-label">今日收入</div>
   </div>
   {% if pending_reviews > 0 %}
-  <div class="stat-card alert">
-    <div class="stat-number">{{ pending_reviews }}</div>
-    <div class="stat-label">⚠️ 待审核</div>
+  <div class="stat-card stat-alert">
+    <div class="stat-icon">⚠️</div>
+    <div class="stat-number" id="stat-review">{{ pending_reviews }}</div>
+    <div class="stat-label">待审核</div>
   </div>
   {% endif %}
 </div>
 
-<div class="records">
-  <h2 style="margin-bottom: 15px;">📋 最近记录 <span style="font-size:13px;color:#999;font-weight:normal;">{{ now }}</span></h2>
-  {% if recent_records %}
-    {% for record in recent_records %}
-    <div class="record-item">
-      <div>
-        <span class="plate">{{ record.plate_number }}</span>
-        <span class="event-tag {{ record.event_type }}">
-          {{ "🚗 入场" if record.event_type == "enter" else "🏁 出场" }}
-        </span>
-        {% if record.need_review %}
-        <span class="review-badge">⚠ 待审核</span>
-        {% endif %}
-        {% if record.fee > 0 %}
-        <span class="fee-tag">¥{{ "%.2f"|format(record.fee) }}</span>
-        {% endif %}
-      </div>
-      <div class="record-time">{{ record.created_at }}</div>
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">
+      📋 最近记录
+      <span class="time" id="current-time">{{ now }}</span>
     </div>
-    {% endfor %}
-  {% else %}
-    <div class="empty-state">暂无记录</div>
-  {% endif %}
+    <a href="/records" class="btn btn-secondary btn-sm">查看全部 →</a>
+  </div>
+
+  <div class="record-list" id="record-list" aria-label="最近出入记录列表">
+    {% if recent_records %}
+      {% for record in recent_records %}
+      <article class="record-item" tabindex="0" aria-label="{{ record.plate_number }} {{ '入场' if record.event_type == 'enter' else '出场' }}">
+        <div class="record-left">
+          <span class="plate">{{ record.plate_number }}</span>
+          <span class="tag tag-{{ record.event_type }}">
+            {{ "入场" if record.event_type == "enter" else "出场" }}
+          </span>
+          {% if record.need_review %}
+          <span class="tag tag-review">待审核</span>
+          {% endif %}
+        </div>
+        <div class="record-right">
+          {% if record.fee > 0 %}
+          <span class="tag-fee">¥{{ "%.2f"|format(record.fee) }}</span>
+          {% endif %}
+          <time class="text-muted" style="font-size:var(--text-xs);" datetime="{{ record.created_at }}">{{ record.created_at }}</time>
+        </div>
+      </article>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-text">暂无记录</div>
+        <div class="empty-state-hint">车辆出入后将在此显示</div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="auto-refresh">
+    <span class="dot" aria-hidden="true"></span>
+    每30秒自动刷新 &nbsp;|&nbsp;
+    <a href="/records">查看完整记录 →</a>
+  </div>
 </div>
 
-<div class="auto-refresh">
-  每30秒自动刷新 &nbsp;|&nbsp;
-  <a href="/records">查看完整记录 →</a>
+<!-- Weekly trend chart placeholder -->
+<div class="card">
+  <div class="card-title" style="margin-bottom:var(--space-md);">📈 近7天车流趋势</div>
+  <div class="chart-placeholder" role="img" aria-label="车流趋势图（开发中）">
+    📊 车流趋势图表 — 接入 ECharts / Chart.js 后显示
+  </div>
 </div>
 {% endblock %}

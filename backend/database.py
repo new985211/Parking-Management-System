@@ -157,22 +157,22 @@ def get_vehicle_by_openid(openid: str) -> Optional[dict]:
 
 def upsert_vehicle(plate: str, owner_name: str = "", phone: str = "",
                    vehicle_type: str = "normal", monthly_fee: float = 0,
-                   wechat_openid: str = None) -> int:
+                   monthly_expire: str = None, wechat_openid: str = None) -> int:
     conn = get_conn()
     existing = conn.execute("SELECT id FROM vehicles WHERE plate_number = ?", (plate,)).fetchone()
     if existing:
         conn.execute(
             "UPDATE vehicles SET owner_name=?, phone=?, vehicle_type=?, "
-            "monthly_fee=?, wechat_openid=? WHERE plate_number=?",
-            (owner_name, phone, vehicle_type, monthly_fee, wechat_openid, plate),
+            "monthly_fee=?, monthly_expire=?, wechat_openid=? WHERE plate_number=?",
+            (owner_name, phone, vehicle_type, monthly_fee, monthly_expire, wechat_openid, plate),
         )
         conn.commit()
         conn.close()
         return existing["id"]
     cursor = conn.execute(
-        "INSERT INTO vehicles (plate_number, owner_name, phone, vehicle_type, monthly_fee, wechat_openid) "
-        "VALUES (?, ?, ?, ?, ?, ?)",
-        (plate, owner_name, phone, vehicle_type, monthly_fee, wechat_openid),
+        "INSERT INTO vehicles (plate_number, owner_name, phone, vehicle_type, monthly_fee, monthly_expire, wechat_openid) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (plate, owner_name, phone, vehicle_type, monthly_fee, monthly_expire, wechat_openid),
     )
     conn.commit()
     vid = cursor.lastrowid
@@ -199,7 +199,7 @@ def find_active_entry(plate: str) -> Optional[dict]:
                SELECT r1.id FROM records r1
                JOIN records r2 ON r1.plate_number = r2.plate_number
                WHERE r1.event_type = 'enter' AND r2.event_type = 'exit'
-               AND r2.created_at > r1.created_at
+               AND r2.created_at >= r1.created_at
            )
            ORDER BY created_at DESC LIMIT 1""",
         (plate,),

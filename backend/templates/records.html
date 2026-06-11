@@ -1,79 +1,91 @@
 {% extends "base.html" %}
-{% block title %}出入记录 - 停车场管理系统{% endblock %}
+{% block title %}出入记录 - 停车管理{% endblock %}
 
 {% block content %}
-<div class="page-card">
-  <h2>📋 出入记录查询</h2>
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">📋 出入记录查询</h2>
+    <span class="text-muted" style="font-size:var(--text-sm);">共 {{ total }} 条</span>
+  </div>
 
-  <form class="search-form" method="GET" action="/records">
-    <div class="search-row">
-      <div class="search-field">
-        <label>车牌号</label>
-        <input type="text" name="plate" value="{{ plate }}" placeholder="输入车牌号搜索..." class="input">
-      </div>
-      <div class="search-field">
-        <label>日期</label>
-        <input type="date" name="date" value="{{ date }}" class="input">
-      </div>
-      <div class="search-field" style="align-self:flex-end;">
-        <button type="submit" class="btn btn-primary">🔍 搜索</button>
-        <a href="/records" class="btn btn-secondary">重置</a>
-      </div>
+  <form class="search-row" method="GET" action="/records" role="search" aria-label="搜索出入记录" onsubmit="this.querySelectorAll('input').forEach(function(i){i.value=i.value.trim();})">
+    <div class="form-group">
+      <label for="search-plate">车牌号</label>
+      <input type="text" id="search-plate" name="plate" value="{{ plate }}" placeholder="输入车牌号…" aria-label="按车牌号搜索">
+    </div>
+    <div class="form-group">
+      <label for="search-date">日期</label>
+      <input type="date" id="search-date" name="date" value="{{ date }}" aria-label="按日期筛选">
+    </div>
+    <div class="form-group" style="align-self:flex-end; flex:0 0 auto; min-width:auto;">
+      <button type="submit" class="btn btn-primary">🔍 搜索</button>
+      <a href="/records" class="btn btn-ghost" role="button">重置</a>
     </div>
   </form>
-
-  {% if records %}
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>车牌号</th>
-        <th>类型</th>
-        <th>位置</th>
-        <th>时长</th>
-        <th>费用</th>
-        <th>置信度</th>
-        <th>时间</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in records %}
-      <tr class="{{ 'row-review' if r.need_review else '' }}">
-        <td>
-          <span class="plate">{{ r.plate_number }}</span>
-          {% if r.need_review %}<span class="review-badge">待审核</span>{% endif %}
-        </td>
-        <td>
-          <span class="event-tag {{ r.event_type }}">
-            {{ "入场" if r.event_type == "enter" else "出场" }}
-          </span>
-        </td>
-        <td>{{ r.location }}</td>
-        <td>
-          {% if r.parking_duration > 0 %}
-            {% set h = r.parking_duration // 3600 %}
-            {% set m = (r.parking_duration % 3600) // 60 %}
-            {{ "%d时%d分"|format(h, m) if h > 0 else "%d分"|format(m) }}
-          {% else %}-{% endif %}
-        </td>
-        <td>{% if r.fee > 0 %}¥{{ "%.2f"|format(r.fee) }}{% else %}-{% endif %}</td>
-        <td>{% if r.confidence > 0 %}{{ "%.0f%%"|format(r.confidence * 100) }}{% else %}-{% endif %}</td>
-        <td style="font-size:13px;color:#999;">{{ r.created_at }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <div class="pagination">
-    {% if page > 1 %}
-    <a href="?plate={{ plate }}&date={{ date }}&page={{ page - 1 }}" class="btn btn-secondary">← 上一页</a>
-    {% endif %}
-    <span class="page-info">第 {{ page }} 页 / 共 {{ total_pages }} 页 ({{ total }} 条)</span>
-    {% if page < total_pages %}
-    <a href="?plate={{ plate }}&date={{ date }}&page={{ page + 1 }}" class="btn btn-secondary">下一页 →</a>
-    {% endif %}
-  </div>
-  {% else %}
-  <div class="empty-state">暂无记录</div>
-  {% endif %}
 </div>
+
+{% if records %}
+<div class="card table-card-view" style="padding:0; overflow:hidden;">
+  <div class="table-wrapper">
+    <table class="data-table" role="table" aria-label="出入记录表">
+      <thead>
+        <tr>
+          <th scope="col" aria-sort="none">车牌号</th>
+          <th scope="col">类型</th>
+          <th scope="col" class="hide-mobile">位置</th>
+          <th scope="col" aria-sort="none">时长</th>
+          <th scope="col" aria-sort="none">费用</th>
+          <th scope="col" class="hide-mobile">置信度</th>
+          <th scope="col" aria-sort="descending">时间</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr class="{{ 'row-review' if r.need_review else '' }}" tabindex="0">
+          <td class="td-plate" data-label="车牌号">
+            {{ r.plate_number }}
+            {% if r.need_review %}<span class="tag tag-review" style="margin-left:4px;">待审核</span>{% endif %}
+          </td>
+          <td data-label="类型"><span class="tag tag-{{ r.event_type }}">{{ "入场" if r.event_type == "enter" else "出场" }}</span></td>
+          <td class="hide-mobile text-muted">{{ r.location }}</td>
+          <td data-label="时长">
+            {% if r.parking_duration > 0 %}
+              {% set h = r.parking_duration // 3600 %}
+              {% set m = (r.parking_duration % 3600) // 60 %}
+              {{ "%d时%d分"|format(h, m) if h > 0 else "%d分"|format(m) }}
+            {% else %}<span class="text-muted">-</span>{% endif %}
+          </td>
+          <td data-label="费用">{% if r.fee > 0 %}<span class="tag-fee">¥{{ "%.2f"|format(r.fee) }}</span>{% else %}<span class="text-muted">-</span>{% endif %}</td>
+          <td class="hide-mobile">{% if r.confidence > 0 %}{{ "%.0f%%"|format(r.confidence * 100) }}{% else %}<span class="text-muted">-</span>{% endif %}</td>
+          <td data-label="时间"><time datetime="{{ r.created_at }}" style="font-size:var(--text-xs);color:var(--text-muted);">{{ r.created_at }}</time></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<nav class="pagination" aria-label="分页导航">
+  {% if page > 1 %}
+  <a href="?plate={{ plate }}&date={{ date }}&page={{ page - 1 }}" class="page-link" aria-label="上一页">← 上一页</a>
+  {% else %}
+  <span class="page-link disabled" aria-hidden="true">← 上一页</span>
+  {% endif %}
+  <span class="page-info">第 {{ page }} / {{ total_pages }} 页 ({{ total }} 条)</span>
+  {% if page < total_pages %}
+  <a href="?plate={{ plate }}&date={{ date }}&page={{ page + 1 }}" class="page-link" aria-label="下一页">下一页 →</a>
+  {% else %}
+  <span class="page-link disabled" aria-hidden="true">下一页 →</span>
+  {% endif %}
+</nav>
+
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-state-icon">🔍</div>
+    <div class="empty-state-text">未找到匹配记录</div>
+    <div class="empty-state-hint">尝试修改搜索条件或切换日期</div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

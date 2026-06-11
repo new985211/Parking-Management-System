@@ -1,12 +1,12 @@
 App({
   globalData: {
-    apiBase: "https://your-server.com",  // Change to your server URL
+    apiBase: "https://your-server.com",
     openid: "",
-    plateNumber: ""
+    plateNumber: "",
+    pendingCount: 0
   },
 
   onLaunch() {
-    // Get WeChat openid via wx.login
     this.getOpenId();
   },
 
@@ -23,6 +23,7 @@ App({
               if (r.data && r.data.openid) {
                 app.globalData.openid = r.data.openid;
                 app.loadVehicle();
+                app.updateTabBarBadge();
               }
             }
           });
@@ -40,6 +41,22 @@ App({
       success(r) {
         if (r.data && r.data.plate_number) {
           app.globalData.plateNumber = r.data.plate_number;
+        }
+      }
+    });
+  },
+
+  updateTabBarBadge() {
+    const app = this;
+    wx.request({
+      url: `${app.globalData.apiBase}/api/miniapp/current`,
+      data: { openid: app.globalData.openid },
+      success(r) {
+        const current = r.data && r.data.current;
+        if (current && current.fee > 0) {
+          wx.setTabBarBadge({ index: 2, text: "¥" });
+        } else {
+          wx.removeTabBarBadge({ index: 2 });
         }
       }
     });

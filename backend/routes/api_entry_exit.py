@@ -48,7 +48,7 @@ def vehicle_entry():
                SELECT 1 FROM records r2
                WHERE r2.plate_number = r1.plate_number
                AND r2.event_type = 'exit'
-               AND r2.created_at > r1.created_at
+               AND r2.created_at >= r1.created_at
            )""",
         (plate,),
     )

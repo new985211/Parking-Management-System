@@ -5,7 +5,6 @@ Page({
   data: {
     vehicle: null,
     currentParking: null,
-    stats: { today_count: 0, total_fee: 0 },
     loading: true
   },
 
@@ -18,8 +17,8 @@ Page({
     const openid = app.globalData.openid;
     try {
       const [vehicle, current] = await Promise.all([
-        api.getVehicle(openid),
-        api.getCurrentParking(openid)
+        api.getVehicle(openid).catch(() => ({})),
+        api.getCurrentParking(openid).catch(() => ({ current: null }))
       ]);
       this.setData({
         vehicle: vehicle.plate_number ? vehicle : null,
@@ -28,7 +27,9 @@ Page({
       });
     } catch (e) {
       this.setData({ loading: false });
-      wx.showToast({ title: "加载失败", icon: "none" });
+      if (app.globalData.openid) {
+        wx.showToast({ title: "加载失败，下拉刷新", icon: "none", duration: 2000 });
+      }
     }
   },
 
@@ -36,3 +37,10 @@ Page({
     this.loadData().then(() => wx.stopPullDownRefresh());
   }
 });
+
+  onShareAppMessage() {
+    return {
+      title: "停车场智能管理系统",
+      path: "/pages/index/index"
+    };
+  }

@@ -29,6 +29,7 @@ Thumbs.db
 docker-volumes/
 data/
 ssl/
+Deploy-Offline/
 
 # Claude Code internal
 .claude/

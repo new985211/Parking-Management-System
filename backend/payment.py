@@ -104,7 +104,7 @@ def query_order(out_trade_no: str = None, transaction_id: str = None) -> dict:
         return {"trade_state": "ERROR", "error": str(e)}
 
 
-def verify_callback(Headers: dict, body: str) -> bool:
+def verify_callback(headers: dict, body: str) -> bool:
     """Verify WeChat Pay callback signature. Returns True if valid."""
     if not Config.WECHAT_API_KEY:
         return True  # skip verification when not configured (dev mode)

@@ -150,4 +150,5 @@ def review_page():
 
 @web.route("/login")
 def login_page():
-    return render_template("login.html")
+    return render_template("login.html", body_class="login-page",
+                           hide_header=True, hide_footer=True)

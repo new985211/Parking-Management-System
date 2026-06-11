@@ -70,6 +70,7 @@ Page({
   },
 
   async doUnbind() {
+    wx.vibrateShort({ type: "medium" });
     wx.showModal({
       title: "确认解绑",
       content: "解绑后将无法查看停车记录和在线缴费",
@@ -88,3 +89,10 @@ Page({
     });
   }
 });
+
+  onShareAppMessage() {
+    return {
+      title: "停车场智能管理系统",
+      path: "/pages/bind/bind"
+    };
+  }

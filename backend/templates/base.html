@@ -2,34 +2,72 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="theme-color" content="#667eea">
+<meta name="description" content="停车场智能车牌识别管理系统">
 <title>{% block title %}停车场管理系统{% endblock %}</title>
 <link rel="stylesheet" href="/static/css/style.css">
 {% block head %}{% endblock %}
 </head>
-<body>
-<header class="header">
+<body class="{{ body_class if body_class else '' }}">
+<a href="#main-content" class="skip-link">跳转到主内容</a>
+
+{% if not hide_header %}
+<header class="header" role="banner">
   <div class="header-inner">
-    <h1>🅿️ 停车场管理系统</h1>
-    <nav class="nav">
-      <a href="/" class="nav-link">监控面板</a>
-      <a href="/records" class="nav-link">出入记录</a>
-      <a href="/vehicles" class="nav-link">车辆管理</a>
-      <a href="/review" class="nav-link">待审核<span id="review-badge" class="badge" style="display:none"></span></a>
-      <span class="nav-right">
+    <div class="header-logo">
+      <button class="hamburger" aria-label="菜单" aria-expanded="false"
+              aria-controls="main-nav">☰</button>
+      <a href="/" aria-label="停车场管理系统首页">🅿️ 停车管理</a>
+    </div>
+    <nav id="main-nav" class="nav" role="navigation" aria-label="主导航">
+      <a href="/" class="nav-link" data-nav="/">📊 监控面板</a>
+      <a href="/records" class="nav-link" data-nav="/records">📋 出入记录</a>
+      <a href="/vehicles" class="nav-link" data-nav="/vehicles">🚗 车辆管理</a>
+      <a href="/review" class="nav-link" data-nav="/review">
+        待审核<span id="review-badge" class="badge" style="display:none" aria-hidden="true">0</span>
+      </a>
+      <div class="nav-right">
+        <button class="theme-toggle" aria-label="切换到深色模式" title="深色/浅色模式">🌙</button>
         <span id="login-status"></span>
-      </span>
+      </div>
     </nav>
   </div>
 </header>
+{% endif %}
 
-<main class="main">
+<main id="main-content" class="main" tabindex="-1">
   {% block content %}{% endblock %}
 </main>
 
-<footer class="footer">
-  <p>Parking LPR System &copy; 2026 &middot; Flask + PaddleOCR + SQLite</p>
+<!-- Mobile Bottom Navigation -->
+{% if not hide_footer %}
+<nav class="bottom-nav" role="navigation" aria-label="移动端导航">
+  <a href="/">
+    <span class="bn-icon">📊</span>
+    <span>面板</span>
+  </a>
+  <a href="/records">
+    <span class="bn-icon">📋</span>
+    <span>记录</span>
+  </a>
+  <a href="/vehicles">
+    <span class="bn-icon">🚗</span>
+    <span>车辆</span>
+    <span class="bn-badge" id="bn-review-badge" style="display:none">0</span>
+  </a>
+  <a href="/review">
+    <span class="bn-icon">🔍</span>
+    <span>审核</span>
+  </a>
+</nav>
+{% endif %}
+
+{% if not hide_footer %}
+<footer class="footer" role="contentinfo">
+  <p>Parking LPR System &copy; 2026 · Flask + PaddleOCR + SQLite &nbsp;|&nbsp; 按 <kbd>?</kbd> 查看快捷键</p>
 </footer>
+{% endif %}
 
 <script src="/static/js/dashboard.js"></script>
 {% block scripts %}{% endblock %}

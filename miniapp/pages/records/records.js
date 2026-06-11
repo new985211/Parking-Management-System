@@ -41,3 +41,10 @@ Page({
     this.loadRecords().then(() => wx.stopPullDownRefresh());
   }
 });
+
+  onShareAppMessage() {
+    return {
+      title: "停车场智能管理系统",
+      path: "/pages/records/records"
+    };
+  }

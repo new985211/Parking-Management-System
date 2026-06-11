@@ -22,6 +22,7 @@ Page({
   },
 
   async doPayment() {
+    wx.vibrateShort({ type: "heavy" });
     if (!this.data.currentParking) return;
     this.setData({ paying: true });
 
@@ -67,3 +68,10 @@ Page({
     }
   }
 });
+
+  onShareAppMessage() {
+    return {
+      title: "停车场智能管理系统",
+      path: "/pages/payment/payment"
+    };
+  }

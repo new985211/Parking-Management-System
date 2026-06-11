@@ -7,40 +7,20 @@
   ],
   "window": {
     "navigationBarBackgroundColor": "#667eea",
-    "navigationBarTitleText": "停车场管理",
+    "navigationBarTitleText": "停车管理",
     "navigationBarTextStyle": "white",
-    "backgroundColor": "#f0f2f5"
+    "backgroundColor": "#f1f5f9"
   },
   "tabBar": {
-    "color": "#999",
+    "color": "#94a3b8",
     "selectedColor": "#667eea",
-    "backgroundColor": "#fff",
+    "backgroundColor": "#ffffff",
     "borderStyle": "white",
     "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "我的车辆",
-        "iconPath": "images/car.png",
-        "selectedIconPath": "images/car-active.png"
-      },
-      {
-        "pagePath": "pages/records/records",
-        "text": "停车记录",
-        "iconPath": "images/record.png",
-        "selectedIconPath": "images/record-active.png"
-      },
-      {
-        "pagePath": "pages/payment/payment",
-        "text": "缴费",
-        "iconPath": "images/pay.png",
-        "selectedIconPath": "images/pay-active.png"
-      },
-      {
-        "pagePath": "pages/bind/bind",
-        "text": "绑定车牌",
-        "iconPath": "images/bind.png",
-        "selectedIconPath": "images/bind-active.png"
-      }
+      { "pagePath": "pages/index/index", "text": "🚗 我的车辆" },
+      { "pagePath": "pages/records/records", "text": "📋 记录" },
+      { "pagePath": "pages/payment/payment", "text": "💰 缴费" },
+      { "pagePath": "pages/bind/bind", "text": "🔗 绑定" }
     ]
   },
   "style": "v2",

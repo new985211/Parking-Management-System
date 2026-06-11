@@ -77,6 +77,18 @@ def get_stats():
     })
 
 
+@api_admin.route("/api/recent", methods=["GET"])
+def recent_records():
+    """Get recent records for AJAX refresh (no full page fetch)."""
+    from database import get_conn
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM records ORDER BY created_at DESC LIMIT 20")
+    rows = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    return jsonify({"success": True, "records": rows})
+
+
 @api_admin.route("/api/stats/weekly", methods=["GET"])
 def weekly_stats():
     """Get 7-day stats for chart display."""

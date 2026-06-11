@@ -7,8 +7,6 @@ import logging
 import os
 import re
 import time
-from io import BytesIO
-
 from flask import Flask, jsonify, request
 from paddleocr import PaddleOCR
 
@@ -38,13 +36,12 @@ PATTERN_NORMAL = re.compile(rf"^[{PROVINCES}][A-Z][A-Z0-9]{{5}}$")
 PATTERN_NEW_ENERGY = re.compile(rf"^[{PROVINCES}][A-Z][A-Z0-9]{{6}}$")
 PATTERN_POLICE = re.compile(rf"^\d{{2,5}}[{PROVINCES}]警$")
 
-# Characters OCR commonly confuses on plates
-CHAR_CORRECTIONS = str.maketrans({
-    "O": "0", "D": "0", "Q": "0", "V": "0",
-    "I": "1", "L": "1",
-    "Z": "2",
-    "S": "5", "B": "8",
-})
+# OCR confusion corrections — ONLY characters NEVER used on Chinese plates:
+#   O → 0  (letter O is never used on plates, to avoid confusion with digit 0)
+#   I → 1  (letter I is never used on plates, to avoid confusion with digit 1)
+# All other corrections (B→8, D→0, S→5, Z→2, L→1, Q→0, V→0) are REMOVED
+# because B/D/S/Z/L are valid city codes and alphanumeric plate characters.
+OCR_SAFE_CORRECTIONS = str.maketrans({"O": "0", "I": "1"})
 
 
 def is_valid_plate(text: str) -> bool:
@@ -58,37 +55,51 @@ def is_valid_plate(text: str) -> bool:
 
 
 def normalize_plate(plate: str) -> str:
-    """Fix common OCR errors on license plates."""
+    """Fix common OCR errors on license plates.
+
+    Only corrects O→0 and I→1. These are the ONLY letters never used
+    on Chinese plates (to avoid visual confusion with digits).
+    Other characters (B, D, S, Z, L) are VALID city codes and left alone.
+    """
     if not plate:
         return ""
-    prefix = plate[0]
-    suffix = plate[1:]
-    suffix = suffix.translate(CHAR_CORRECTIONS)
-    return (prefix + suffix).replace(" ", "").replace("-", "").upper()
+    cleaned = plate.replace(" ", "").replace("-", "").replace(".", "").upper()
+    cleaned = cleaned.translate(OCR_SAFE_CORRECTIONS)
+    return cleaned
 
 
 def find_best_plate(results) -> tuple:
-    """From all OCR results, find the one most likely to be a license plate."""
+    """From all OCR results, find the one most likely to be a license plate.
+
+    Priority: valid-format plate with highest confidence.
+    Fallback: any text ≥5 chars if no valid plate found (for manual review).
+    """
     if not results or not results[0]:
         return "", 0.0
 
-    best_plate = ""
-    best_confidence = 0.0
+    best_valid_plate = ""
+    best_valid_conf = 0.0
+    best_fallback_text = ""
+    best_fallback_conf = 0.0
 
     for line in results[0]:
         box, (text, confidence) = line
         text = text.strip()
         if confidence > 0.7 and 6 <= len(text) <= 9:
             if is_valid_plate(text):
-                if confidence > best_confidence:
-                    best_confidence = confidence
-                    best_plate = text
-            # Also keep best even if invalid format
-            elif confidence > best_confidence and len(text) >= 5:
-                best_confidence = confidence
-                best_plate = text
+                if confidence > best_valid_conf:
+                    best_valid_conf = confidence
+                    best_valid_plate = text
+            elif len(text) >= 5 and confidence > best_fallback_conf:
+                best_fallback_conf = confidence
+                best_fallback_text = text
 
-    return normalize_plate(best_plate), best_confidence
+    # Always prefer a valid plate, even if a fallback had higher confidence
+    if best_valid_plate:
+        return normalize_plate(best_valid_plate), best_valid_conf
+    if best_fallback_text:
+        return normalize_plate(best_fallback_text), best_fallback_conf
+    return "", 0.0
 
 
 # ---- Routes ----

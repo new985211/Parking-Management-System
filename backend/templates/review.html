@@ -1,62 +1,115 @@
 {% extends "base.html" %}
-{% block title %}人工审核 - 停车场管理系统{% endblock %}
+{% block title %}人工审核 - 停车管理{% endblock %}
 
 {% block content %}
-<div class="page-card">
-  <h2>🔍 待审核记录</h2>
-  <p style="color:#999;margin-bottom:15px;">识别置信度 &lt; 85% 的记录需人工确认，共 {{ pending|length }} 条</p>
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">🔍 待审核记录</h2>
+    <span class="text-muted" style="font-size:var(--text-sm);">
+      识别置信度 &lt; 85% 需人工确认 · 共 <strong>{{ pending|length }}</strong> 条
+    </span>
+  </div>
 
   {% if pending %}
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>识别车牌</th>
-        <th>置信度</th>
-        <th>类型</th>
-        <th>时间</th>
-        <th>抓拍图片</th>
-        <th>操作</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in pending %}
-      <tr>
-        <td><span class="plate">{{ r.plate_number }}</span></td>
-        <td>{{ "%.0f%%"|format(r.confidence * 100) }}</td>
-        <td><span class="event-tag {{ r.event_type }}">{{ "入场" if r.event_type == "enter" else "出场" }}</span></td>
-        <td style="font-size:13px;">{{ r.created_at }}</td>
-        <td>
-          {% if r.image_path %}
-          <a href="/{{ r.image_path }}" target="_blank" class="btn-small">查看图片</a>
-          {% else %}-{% endif %}
-        </td>
-        <td>
-          <input type="text" class="input input-sm" id="correct-{{ r.id }}" value="{{ r.plate_number }}" style="width:120px;">
-          <button class="btn-small btn-primary" onclick="confirmReview({{ r.id }})">✓ 确认</button>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="table-wrapper">
+    <table class="data-table" role="table" aria-label="待审核记录">
+      <thead>
+        <tr>
+          <th scope="col">识别车牌</th>
+          <th scope="col">置信度</th>
+          <th scope="col">类型</th>
+          <th scope="col" class="hide-mobile">时间</th>
+          <th scope="col">修正为</th>
+          <th scope="col">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in pending %}
+        <tr tabindex="0" id="row-{{ r.id }}">
+          <td class="td-plate">{{ r.plate_number }}</td>
+          <td>
+            {% if r.confidence >= 0.7 %}
+            <span style="color:var(--warning);font-weight:600;">{{ "%.0f%%"|format(r.confidence * 100) }}</span>
+            {% else %}
+            <span style="color:var(--danger);font-weight:600;">{{ "%.0f%%"|format(r.confidence * 100) }}</span>
+            {% endif %}
+          </td>
+          <td><span class="tag tag-{{ r.event_type }}">{{ "入场" if r.event_type == "enter" else "出场" }}</span></td>
+          <td class="hide-mobile"><time datetime="{{ r.created_at }}" style="font-size:var(--text-xs);color:var(--text-muted);">{{ r.created_at }}</time></td>
+          <td>
+            <label for="correct-{{ r.id }}" class="sr-only">修正车牌号</label>
+            <input id="correct-{{ r.id }}" type="text" value="{{ r.plate_number }}" class="input-sm" style="width:120px;" aria-label="修正车牌号为">
+          </td>
+          <td>
+            <button class="btn btn-primary btn-sm" onclick="confirmReview({{ r.id }})" aria-label="确认车牌 {{ r.plate_number }} 的修正">
+              ✓ 确认
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% else %}
-  <div class="empty-state">🎉 所有记录已确认，暂无待审核项</div>
+  <div class="empty-state">
+    <div class="empty-state-icon">🎉</div>
+    <div class="empty-state-text">所有记录已确认</div>
+    <div class="empty-state-hint">暂无待审核项</div>
+  </div>
   {% endif %}
 </div>
 
 <script>
 async function confirmReview(recordId) {
-  const plate = document.getElementById('correct-' + recordId).value.trim().toUpperCase();
-  if (!plate) return alert('请输入正确车牌号');
+  var plate = document.getElementById('correct-' + recordId).value.trim().toUpperCase();
+  if (!plate) {
+    showToast('请输入正确车牌号', 'warning');
+    document.getElementById('correct-' + recordId).focus();
+    return;
+  }
+  if (plate.length < 7) {
+    showToast('车牌号至少7位', 'warning');
+    return;
+  }
+
+  var confirmed = await showConfirm(
+    '确认修正',
+    '将车牌号确认为 "' + plate + '"？',
+    '确认', '取消'
+  );
+  if (!confirmed) return;
+
+  var btn = event.target;
+  setBtnLoading(btn, true);
+
   try {
-    const r = await fetch('/api/review/confirm', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({record_id: recordId, plate: plate})
+    var resp = await apiPost('/api/review/confirm', {
+      record_id: recordId, plate: plate
     });
-    const j = await r.json();
-    if (j.success) location.reload();
-    else alert(j.error);
-  } catch(e) { alert('操作失败: ' + e.message); }
+    if (resp.success) {
+      showToast(resp.message, 'success');
+      var row = document.getElementById('row-' + recordId);
+      if (row) {
+        row.style.transition = 'opacity .3s';
+        row.style.opacity = '0';
+        setTimeout(function () { row.remove(); }, 300);
+      }
+    } else {
+      showToast(resp.error || '操作失败', 'error');
+    }
+  } catch (e) {
+    showToast('网络错误: ' + e.message, 'error');
+  } finally {
+    setBtnLoading(btn, false);
+  }
 }
+
+// Enter key submits the correction
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.activeElement && document.activeElement.id.startsWith('correct-')) {
+    var recordId = parseInt(document.activeElement.id.replace('correct-', ''));
+    if (recordId) confirmReview(recordId);
+  }
+});
 </script>
 {% endblock %}
