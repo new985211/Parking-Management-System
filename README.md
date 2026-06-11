@@ -27,6 +27,7 @@
 - [运维指南](#-运维指南)
 - [常见问题](#-常见问题)
 - [后续扩展](#-后续扩展)
+- [Bug 修复历史](#-bug-修复历史)
 
 ---
 
@@ -319,6 +320,14 @@ curl -X POST http://localhost:5000/api/exit \
 | POST | `/api/payment/callback` | 微信支付回调通知 |
 | GET | `/api/payment/status` | 查询支付状态 |
 
+### 管理 & 统计
+
+| 方法 | 路由 | 说明 |
+|------|------|------|
+| POST | `/api/login` | 管理员登录 |
+| GET | `/api/recent` | 最近 20 条出入记录（AJAX 刷新用） |
+| GET | `/api/stats/weekly` | 近 7 天车流统计 |
+
 ### 道闸 & 审核
 
 | 方法 | 路由 | 说明 |
@@ -596,6 +605,22 @@ DAILY_CAP = 50.0            # 单日封顶
 | 🏢 多停车场管理 | ⭐⭐ | 一个系统管理多个停车场 |
 | 🧠 深度学习优化 | ⭐⭐⭐ | 自定义车牌检测模型 |
 | 🔄 云端同步 | ⭐⭐ | 数据同步到云数据库 |
+
+---
+
+## 🐛 Bug 修复历史
+
+| # | 严重度 | 修复日期 | 模块 | 问题 | 修复 |
+|---|--------|----------|------|------|------|
+| 1 | 🔴 Critical | 2026-06-11 | `normalize_plate()` | `B→8, S→5, D→0, Z→2, L→1` 字符替换破坏合法车牌城市代码（如粤B→粤8） | 仅保留 `O→0` 和 `I→1`（这两个字母从未在中国车牌中使用） |
+| 2 | 🔴 Critical | 2026-06-11 | `find_best_plate()` | 高置信度非车牌文本（如"停车场入口" 0.95）会阻止低置信度有效车牌（如"粤B12345" 0.85）被选中 | 分离 valid 和 fallback 两条跟踪路径，有效车牌永远优先 |
+| 3 | 🟡 Medium | 2026-06-11 | `upsert_vehicle()` | INSERT 和 UPDATE 均缺少 `monthly_expire` 字段 | 添加参数并更新 SQL |
+| 4 | 🟡 Medium | 2026-06-11 | 出入场 SQL | `r2.created_at > r1.created_at` 使用严格大于，同一秒出入场会丢失记录 | 改为 `>=` |
+| 5 | 🟢 Low | 2026-06-11 | `verify_callback()` | 参数名 `Headers` 大写 H 不符合 Python 规范 | 改为 `headers` |
+| 6 | 🟢 Low | 2026-06-11 | `server.py` | 未使用的 `from io import BytesIO` 导入 | 删除 |
+| 7 | 🔴 Critical | 2026-06-11 | 登录页 | 登录 JS 依赖 `dashboard.js` 中的函数但加载顺序不可靠；界面仅为白色卡片 + emoji | 重写为自包含 fetch 逻辑 + 全屏渐变背景 + 独立 CSS |
+| 8 | 🟡 Medium | 2026-06-11 | Deploy-Offline | CSS/JS/nginx/docker-compose/.env 均为 v1 过期版本 | 同步到当前版本 |
+| 9 | 🟢 Low | 2026-06-11 | `records.js` | 空占位符文件，无实际功能 | 删除 |
 
 ---
 
