@@ -2,7 +2,7 @@
 
 基于 **Flask + PaddleOCR + SQLite** 的轻量级车牌识别停车场管理系统。支持车牌自动识别、出入场记录、阶梯计费、道闸联动、微信小程序车主端和在线支付。
 
-([国内用户可以看gitee仓库])(https://gitee.com/new211/parking-management-system)
+[(国内用户可以看gitee仓库)](https://gitee.com/new211/parking-management-system)
 ---
 
 ## 📋 目录
