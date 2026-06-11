@@ -27,6 +27,8 @@ Thumbs.db
 
 # Docker
 docker-volumes/
+data/
+ssl/
 
 # Claude Code internal
 .claude/
